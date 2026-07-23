@@ -1,0 +1,6 @@
+{
+  "name": "Cadê Minha Grana",
+  "description": "SaaS Premium financial platform with Gemini AI analytics, receipt OCR scanning, cash flow projection, and an automated subscription radar scanner.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

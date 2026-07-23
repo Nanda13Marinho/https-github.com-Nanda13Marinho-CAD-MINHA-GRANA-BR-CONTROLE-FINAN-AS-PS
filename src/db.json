@@ -1,0 +1,170 @@
+{
+  "transactions": [
+    {
+      "id": "t1",
+      "merchant": "Nobu Downtown",
+      "category": "Dining Out",
+      "date": "Today, 8:45 PM",
+      "amount": -245.00,
+      "currency": "USD",
+      "type": "expense",
+      "status": "Cleared"
+    },
+    {
+      "id": "t2",
+      "merchant": "Acme Corp Salary",
+      "category": "Salary",
+      "date": "Today, 9:00 AM",
+      "amount": 7125.00,
+      "currency": "USD",
+      "type": "income",
+      "status": "Cleared"
+    },
+    {
+      "id": "t3",
+      "merchant": "Apple Store",
+      "category": "Electronics",
+      "date": "Yesterday",
+      "amount": -1299.00,
+      "currency": "USD",
+      "type": "expense",
+      "status": "Reviewed",
+      "aiReviewed": true
+    },
+    {
+      "id": "t4",
+      "merchant": "Uber Ride",
+      "category": "Transport",
+      "date": "Oct 24",
+      "amount": -24.50,
+      "currency": "USD",
+      "type": "expense",
+      "status": "Pending"
+    },
+    {
+      "id": "t5",
+      "merchant": "Tech Corp Inc.",
+      "category": "Salary",
+      "date": "Oct 07",
+      "amount": 12500.00,
+      "currency": "BRL",
+      "type": "income",
+      "status": "Cleared"
+    },
+    {
+      "id": "t6",
+      "merchant": "DARF / Taxes",
+      "category": "Gov",
+      "date": "Oct 12",
+      "amount": -4520.30,
+      "currency": "BRL",
+      "type": "expense",
+      "status": "Cleared"
+    },
+    {
+      "id": "t7",
+      "merchant": "BMW Financing",
+      "category": "Loan",
+      "date": "Oct 20",
+      "amount": -3100.00,
+      "currency": "BRL",
+      "type": "expense",
+      "status": "Cleared"
+    }
+  ],
+  "goals": [
+    {
+      "id": "g1",
+      "name": "Investment Goal",
+      "target": 100000.00,
+      "current": 75000.00,
+      "category": "Investments"
+    },
+    {
+      "id": "g2",
+      "name": "Emergency Fund",
+      "target": 30000.00,
+      "current": 25000.00,
+      "category": "Liquidity"
+    }
+  ],
+  "cards": [
+    {
+      "id": "c1",
+      "name": "Visa Infinite Black",
+      "limit": 50000,
+      "used": 12450
+    },
+    {
+      "id": "c2",
+      "name": "Amex Platinum",
+      "limit": 80000,
+      "used": 8430
+    }
+  ],
+  "leaks": [
+    {
+      "id": "l1",
+      "name": "FitLife Mega Gym",
+      "cost": 180.00,
+      "reason": "4 Months Unused",
+      "category": "Fitness",
+      "status": "active"
+    },
+    {
+      "id": "l2",
+      "name": "CloudSync Pro",
+      "cost": 45.00,
+      "reason": "Duplicate Service Detected",
+      "category": "Cloud Services",
+      "status": "active"
+    },
+    {
+      "id": "l3",
+      "name": "Bank Maintenance Fee",
+      "cost": 25.00,
+      "reason": "Hidden Charge Detected",
+      "category": "Banking",
+      "status": "active"
+    }
+  ],
+  "recurring": [
+    {
+      "id": "r1",
+      "name": "Mortgage",
+      "amount": -3500.00,
+      "nextDue": "15th"
+    },
+    {
+      "id": "r2",
+      "name": "Cloud Services",
+      "amount": -150.00,
+      "nextDue": "22nd"
+    }
+  ],
+  "chatMessages": [
+    {
+      "id": "m1",
+      "sender": "ai",
+      "text": "Olá Carlos! Eu sou o assistente de IA do **Cadê Minha Grana**. Analisei suas movimentações recentes e percebi que você economizou 4.2% a mais este mês. Como posso te ajudar hoje?"
+    }
+  ],
+  "budget": [
+    {
+      "category": "Dining Out",
+      "limit": 500,
+      "spent": 650
+    },
+    {
+      "category": "Transport",
+      "limit": 300,
+      "spent": 245
+    },
+    {
+      "category": "Electronics",
+      "limit": 1000,
+      "spent": 1299
+    }
+  ],
+  "ocrLogs": []
+}
