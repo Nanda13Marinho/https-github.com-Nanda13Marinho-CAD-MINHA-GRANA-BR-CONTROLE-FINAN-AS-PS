@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LifeBuoy, ShieldCheck, FileText, Heart } from "lucide-react";
+import { LifeBuoy, ShieldCheck, FileText } from "lucide-react";
 import LegalModals from "./LegalModals";
 
 interface FooterProps {
@@ -13,68 +13,41 @@ export default function Footer({ onTriggerToast, className = "" }: FooterProps) 
   return (
     <>
       <footer className={`border-t border-white/10 bg-[#030305] py-8 px-6 text-xs text-white/60 font-sans ${className}`}>
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="max-w-7xl mx-auto flex flex-col items-center justify-center gap-5 text-center">
           
-          {/* Brand & Logo */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center font-bold text-black text-xs shadow-md shadow-amber-500/20 shrink-0">
-              CMG
-            </div>
-            <div>
-              <span className="font-bold text-white block text-sm tracking-wide">
-                Cadê Minha Grana
-              </span>
-              <span className="text-[10px] text-white/40 font-mono">
-                Gestão Financeira Pessoal com Inteligência Artificial
-              </span>
-            </div>
-          </div>
-
-          {/* Links for Terms, Privacy, Support */}
+          {/* Terms / Privacy Links */}
           <div className="flex flex-wrap items-center justify-center gap-6 text-xs font-medium">
             <button
               onClick={() => setActiveLegalModal("terms")}
-              className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1.5"
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-white/70"
             >
               <FileText className="w-3.5 h-3.5 text-white/40" />
               <span>Termos de Uso</span>
             </button>
-
+            <span className="text-white/20 hidden sm:inline">•</span>
             <button
               onClick={() => setActiveLegalModal("privacy")}
-              className="hover:text-amber-400 transition-colors cursor-pointer flex items-center gap-1.5"
+              className="hover:text-white transition-colors cursor-pointer flex items-center gap-1.5 text-white/70"
             >
               <ShieldCheck className="w-3.5 h-3.5 text-white/40" />
               <span>Política de Privacidade</span>
             </button>
-
-            <a
-              href="/presentation"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-amber-300 transition-colors cursor-pointer text-amber-400 font-bold flex items-center gap-1.5 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/30 shadow-sm"
-              title="Abrir Apresentação do Modelo de Negócio em formato executivo para salvar em PDF"
-            >
-              <span>📄 Apresentação do Negócio (PDF)</span>
-            </a>
-
-            <button
-              onClick={() => setActiveLegalModal("support")}
-              className="hover:text-amber-400 transition-colors cursor-pointer text-amber-400 font-semibold flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10"
-            >
-              <LifeBuoy className="w-3.5 h-3.5" />
-              <span>Suporte & Relato de Erro</span>
-            </button>
           </div>
 
-          {/* Copyright Notice */}
-          <div className="text-[11px] font-mono text-white/40 text-center md:text-right flex flex-col items-center md:items-end gap-1">
-            <div>
-              © {new Date().getFullYear()} <strong className="text-white/70">Cadê Minha Grana</strong>. Todos os direitos reservados.
-            </div>
-            <div className="text-[10px] text-white/30 flex items-center gap-1">
-              Desenvolvido com <Heart className="w-3 h-3 text-red-500 inline fill-red-500" /> para alta performance financeira
-            </div>
+          {/* Connected Copyright & Developer Statement in White */}
+          <div className="text-xs font-mono text-white/80 tracking-wide">
+            Desenvolvido por <strong className="text-white font-bold">Nanda Marinho</strong>. Todos os direitos reservados.
+          </div>
+
+          {/* Support Button Positioned Below All Rights Reserved with White Text */}
+          <div className="pt-1">
+            <button
+              onClick={() => setActiveLegalModal("support")}
+              className="hover:bg-white/15 transition-all cursor-pointer text-white font-medium text-xs flex items-center gap-2 bg-white/5 px-4 py-2 rounded-xl border border-white/15 shadow-sm"
+            >
+              <LifeBuoy className="w-4 h-4 text-white" />
+              <span className="text-white">Suporte & Relato de Erro</span>
+            </button>
           </div>
 
         </div>

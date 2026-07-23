@@ -142,6 +142,35 @@
       "nextDue": "22nd"
     }
   ],
+  "users": [
+    {
+      "email": "futurehumanty2023ia@gmail.com",
+      "password": "Fer2026#grana",
+      "name": "Administrador do Sistema",
+      "role": "admin",
+      "plan": "Premium"
+    },
+    {
+      "email": "futurehuanty2023ia@gmail.com",
+      "password": "Fer2026#grana",
+      "name": "Administrador do Sistema",
+      "role": "admin",
+      "plan": "Premium"
+    },
+    {
+      "email": "admin@cademinhagrana.com",
+      "password": "admin",
+      "name": "Administrador Geral",
+      "role": "admin",
+      "plan": "Premium"
+    },
+    {
+      "email": "nandamarinho@gmail.com",
+      "name": "Nanda Marinho",
+      "role": "user",
+      "plan": "Gratuito"
+    }
+  ],
   "chatMessages": [
     {
       "id": "m1",

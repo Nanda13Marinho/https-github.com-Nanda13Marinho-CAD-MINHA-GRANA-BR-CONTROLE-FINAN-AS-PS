@@ -61,18 +61,48 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
     e.preventDefault();
     setError("");
 
+    const cleanEmail = email.toLowerCase().trim();
+
     if (authScreen === "signup") {
-      if (!name || !email || !password) {
-        setError("Por favor, preencha todos os campos do formulário.");
+      if (!name.trim() || !cleanEmail || !password) {
+        setError("Por favor, preencha seu nome completo, e-mail e senha para criar a conta.");
         return;
       }
       setLoading(true);
+
+      const newUser = {
+        name: name.trim(),
+        email: cleanEmail,
+        password: password,
+        role: "user" as const,
+        plan: "Gratuito" as const,
+        initialSetupCompleted: false,
+      };
+
+      // Save user to registered users in localStorage
+      try {
+        const stored = localStorage.getItem("cmg_registered_users");
+        const list = stored ? JSON.parse(stored) : [];
+        const filtered = list.filter((u: any) => u.email.toLowerCase() !== cleanEmail);
+        filtered.push(newUser);
+        localStorage.setItem("cmg_registered_users", JSON.stringify(filtered));
+      } catch (err) {
+        console.error("Error saving registered user:", err);
+      }
+
       setTimeout(() => {
         setLoading(false);
-        setAuthScreen("verify");
-      }, 1000);
+        onLoginSuccess({
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+          plan: newUser.plan,
+          initialSetupCompleted: newUser.initialSetupCompleted
+        });
+      }, 800);
+
     } else if (authScreen === "login") {
-      if (!email || !password) {
+      if (!cleanEmail || !password) {
         setError("E-mail e senha são obrigatórios para acessar.");
         return;
       }
@@ -86,13 +116,21 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
           const stored = localStorage.getItem("cmg_registered_users");
           if (stored) {
             const list = JSON.parse(stored);
-            registeredUser = list.find((u: any) => u.email.toLowerCase() === email.toLowerCase());
+            registeredUser = list.find((u: any) => u.email.toLowerCase() === cleanEmail);
           }
         } catch (e) {
           console.error(e);
         }
 
-        if (email === "admin@cademinhagrana.com") {
+        if (cleanEmail === "futurehumanty2023ia@gmail.com" || cleanEmail === "futurehuanty2023ia@gmail.com") {
+          onLoginSuccess({
+            name: "Administrador do Sistema",
+            email: cleanEmail,
+            role: "admin",
+            plan: "Premium",
+            initialSetupCompleted: true,
+          });
+        } else if (cleanEmail === "admin@cademinhagrana.com") {
           onLoginSuccess({
             name: "Administrador Geral",
             email: "admin@cademinhagrana.com",
@@ -100,7 +138,7 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
             plan: "Premium",
             initialSetupCompleted: true,
           });
-        } else if (email === "carlos@cademinhagrana.com") {
+        } else if (cleanEmail === "carlos@cademinhagrana.com") {
           onLoginSuccess({
             name: "Carlos Wealth",
             email: "carlos@cademinhagrana.com",
@@ -109,45 +147,65 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
             initialSetupCompleted: true,
           });
         } else if (registeredUser) {
-          onLoginSuccess(registeredUser);
-        } else {
-          // Returning user logging in normally
           onLoginSuccess({
-            name: name || email.split("@")[0],
-            email: email,
+            name: registeredUser.name,
+            email: registeredUser.email,
+            role: registeredUser.role || "user",
+            plan: registeredUser.plan || "Gratuito",
+            initialSetupCompleted: registeredUser.initialSetupCompleted ?? true
+          });
+        } else {
+          // Derive clean name from email if not explicitly registered
+          const namePart = cleanEmail.split("@")[0] || "Usuário";
+          const formattedName = namePart
+            .split(/[._-]/)
+            .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(" ");
+
+          onLoginSuccess({
+            name: name.trim() || formattedName,
+            email: cleanEmail,
             role: "user",
             plan: "Gratuito",
             initialSetupCompleted: true,
           });
         }
-      }, 900);
+      }, 800);
+
     } else if (authScreen === "forgot") {
-      if (!email) {
-        setError("Informe seu e-mail cadastrado.");
+      if (!cleanEmail) {
+        setError("Informe seu e-mail cadastrado para redefinir a senha.");
         return;
       }
       setLoading(true);
       setTimeout(() => {
         setLoading(false);
-        alert("E-mail com instruções para redefinição de senha enviado com sucesso!");
+        alert(`E-mail com instruções para redefinição de senha enviado com sucesso para ${cleanEmail}!`);
         setAuthScreen("login");
-      }, 900);
+      }, 800);
     }
   };
 
   // Google OAuth Login Simulation
   const handleGoogleLogin = () => {
     setGoogleLoading(true);
+    const cleanEmail = email.trim().toLowerCase() || "usuario.google@gmail.com";
+    const namePart = cleanEmail.split("@")[0];
+    const derivedName = namePart
+      .split(/[._-]/)
+      .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+
     setTimeout(() => {
       setGoogleLoading(false);
       onLoginSuccess({
-        name: "Usuário Google",
-        email: "usuario.google@gmail.com",
+        name: name.trim() || derivedName || "Usuário Google",
+        email: cleanEmail,
         role: "user",
         plan: "Gratuito",
         initialSetupCompleted: true,
       });
-    }, 1200);
+    }, 800);
   };
 
   const skipToDemo = (role: "user" | "admin") => {
@@ -289,9 +347,6 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
                 <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
                 <span className="text-[10px] font-mono text-white/40 ml-2">SIMULADOR DE ENTRADA POR IA</span>
               </div>
-              <span className="text-[10px] font-mono text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                LOOP INTERATIVO
-              </span>
             </div>
 
             {/* Loop Interactive Frame Steps */}
@@ -422,7 +477,7 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
             <div className="flex bg-[#18181b] p-1 rounded-xl border border-white/5">
               <button
                 type="button"
-                onClick={() => setAuthScreen("login")}
+                onClick={() => { setAuthScreen("login"); setError(""); }}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   authScreen === "login" ? "bg-amber-500 text-black shadow" : "text-white/40 hover:text-white"
                 }`}
@@ -431,7 +486,7 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
               </button>
               <button
                 type="button"
-                onClick={() => setAuthScreen("signup")}
+                onClick={() => { setAuthScreen("signup"); setError(""); }}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   authScreen === "signup" ? "bg-amber-500 text-black shadow" : "text-white/40 hover:text-white"
                 }`}
@@ -449,6 +504,13 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
 
             <form onSubmit={handleAuthAction} className="space-y-4">
               
+              {authScreen === "forgot" && (
+                <div className="text-center p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl space-y-1">
+                  <p className="text-xs text-amber-400 font-bold">Recuperação de Senha</p>
+                  <p className="text-[11px] text-white/60">Digite seu e-mail abaixo para receber as instruções de acesso.</p>
+                </div>
+              )}
+
               {authScreen === "signup" && (
                 <div className="space-y-1">
                   <label className="text-[10px] font-mono text-white/40 uppercase">Nome Completo</label>
@@ -458,7 +520,7 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
                       type="text"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      placeholder="Ex: Carlos Wealth"
+                      placeholder="Ex: Hadassa Estrela"
                       className="w-full bg-[#18181c] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-amber-500/40"
                     />
                   </div>
@@ -534,29 +596,19 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
                 )}
               </button>
 
-            </form>
+              {authScreen === "forgot" && (
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => { setAuthScreen("login"); setError(""); }}
+                    className="text-xs text-amber-400 hover:underline font-mono cursor-pointer"
+                  >
+                    ← Voltar para Entrar
+                  </button>
+                </div>
+              )}
 
-            {/* Quick Demo Credentials */}
-            <div className="pt-4 border-t border-white/10 space-y-2 text-center">
-              <span className="text-[10px] font-mono uppercase text-white/40 block">Acesso Rápido de Demonstração</span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => skipToDemo("user")}
-                  className="py-2 px-3 rounded-lg bg-white/5 border border-amber-500/20 hover:border-amber-500 text-[10px] text-amber-400 font-mono transition-all cursor-pointer"
-                >
-                  Entrar como Membro
-                </button>
-                <button
-                  type="button"
-                  onClick={() => skipToDemo("admin")}
-                  className="py-2 px-3 rounded-lg bg-red-500/10 border border-red-500/30 hover:border-red-500 text-[10px] text-red-400 font-mono transition-all cursor-pointer flex items-center justify-center gap-1"
-                >
-                  <ShieldCheck className="w-3 h-3" />
-                  Portal Admin
-                </button>
-              </div>
-            </div>
+            </form>
 
           </div>
 
@@ -661,7 +713,7 @@ export default function LandingPage({ onLoginSuccess }: LandingPageProps) {
               <span className="text-[10px] font-mono uppercase text-orange-400 block">PLAN PREMIUM VIP</span>
               <h3 className="text-xl font-bold text-white">Premium</h3>
               <div className="text-2xl font-black text-white font-mono">
-                R$ 69 <span className="text-xs text-white/40 font-normal">/ mês</span>
+                R$ 59 <span className="text-xs text-white/40 font-normal">/ mês</span>
               </div>
               <p className="text-xs text-white/60">Acesso antecipado à Fase 2 de Automação Open Finance e suporte VIP dedicado.</p>
               

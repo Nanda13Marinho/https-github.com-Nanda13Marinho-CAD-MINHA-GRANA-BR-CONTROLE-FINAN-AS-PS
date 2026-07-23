@@ -1,22 +1,34 @@
 import React, { useState, useEffect } from "react";
 import { AppData, Transaction } from "../types";
-import { TrendingUp, ArrowDown, ArrowUp, Zap, X, Eye, FileText, PlusCircle, CheckCircle, Clock } from "lucide-react";
+import { TrendingUp, ArrowDown, ArrowUp, Zap, X, Eye, FileText, PlusCircle, CheckCircle, Clock, Calendar, ChevronLeft, ChevronRight, RotateCcw } from "lucide-react";
 
 interface HomeDashboardProps {
   data: AppData;
   currency: "USD" | "BRL";
+  userEmail?: string;
   onTriggerScanner: () => void;
-  onTriggerAdd: () => void;
+  onTriggerAdd: (type?: "income" | "expense") => void;
   onReviewTransaction: (id: string) => void;
 }
 
 export default function HomeDashboard({
   data,
   currency,
+  userEmail,
   onTriggerScanner,
   onTriggerAdd,
   onReviewTransaction
 }: HomeDashboardProps) {
+  const isDemoMode = !userEmail || userEmail.toLowerCase() === "carlos@cademinhagrana.com" || userEmail.toLowerCase() === "admin@cademinhagrana.com";
+
+  const [monthOffset, setMonthOffset] = useState(0);
+
+  const today = new Date();
+  const targetDate = new Date(today.getFullYear(), today.getMonth() + monthOffset, 1);
+  const monthNameRaw = targetDate.toLocaleDateString("pt-BR", { month: "long" });
+  const formattedMonthName = monthNameRaw.charAt(0).toUpperCase() + monthNameRaw.slice(1);
+  const formattedYear = targetDate.getFullYear();
+
   const [aiInsight, setAiInsight] = useState<string>(
     currency === "USD" 
       ? "With your recent income received today, we suggest allocating $1,000 towards your Emergency Fund target."
@@ -63,118 +75,176 @@ export default function HomeDashboard({
     }
   };
 
-  // Calculate stats from dynamic database
-  const totalBalanceBase = 124592.00; // Static premium base offset
+  // Calculate stats dynamically. Demo mode uses sample offsets, real accounts use exact real entries.
+  const totalBalanceBase = isDemoMode ? 124592.00 : 0;
   const deltaTransactions = data.transactions.reduce((sum, t) => {
     return sum + convertVal(t.amount, t.currency);
   }, 0);
-  const totalBalance = convertVal(totalBalanceBase, "USD") + deltaTransactions;
+  const totalBalance = (isDemoMode ? convertVal(totalBalanceBase, "USD") : 0) + deltaTransactions;
 
   // Monthly income and expenses
   const monthlyIncome = data.transactions
     .filter(t => t.type === "income")
-    .reduce((sum, t) => sum + convertVal(t.amount, t.currency), 0) + convertVal(7125.00, "USD"); // Offset base salary
+    .reduce((sum, t) => sum + convertVal(t.amount, t.currency), 0) + (isDemoMode ? convertVal(7125.00, "USD") : 0);
 
   const monthlyExpenses = Math.abs(
     data.transactions
       .filter(t => t.type === "expense")
       .reduce((sum, t) => sum + convertVal(t.amount, t.currency), 0)
-  ) + convertVal(3500.00, "USD") + convertVal(150.00, "USD"); // Offset mortgage & base cloud expenses
+  ) + (isDemoMode ? convertVal(3650.00, "USD") : 0);
 
   // Spent breakdown for Cash Flow Overview ring chart
-  const incomePercent = 65;
-  const fixedPercent = 25;
-  const discPercent = 10;
+  const incomePercent = monthlyIncome > 0 ? 65 : 0;
+  const fixedPercent = monthlyExpenses > 0 ? 25 : 0;
+  const discPercent = monthlyExpenses > 0 ? 10 : 0;
   const netFlow = monthlyIncome - monthlyExpenses;
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Top Cards Grid */}
+    <div className="space-y-6 animate-fade-in">
+
+      {/* Calendar & Month Navigation Bar */}
+      <div className="bg-[#131315] border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 shrink-0">
+            <Calendar className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="text-base font-extrabold text-white">
+                {formattedMonthName} de {formattedYear}
+              </h2>
+              {monthOffset === 0 && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  Mês Atual
+                </span>
+              )}
+              {monthOffset < 0 && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  Relatório Passado ({Math.abs(monthOffset)} {Math.abs(monthOffset) === 1 ? "mês atrás" : "meses atrás"})
+                </span>
+              )}
+              {monthOffset > 0 && (
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  Contas Programadas (+{monthOffset} {monthOffset === 1 ? "mês à frente" : "meses à frente"})
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-white/50">
+              {monthOffset < 0 
+                ? "Visualizando histórico do relatório de despesas e receitas passadas." 
+                : monthOffset > 0 
+                ? "Visualizando contas programadas e projeções de vencimento futuro." 
+                : "Acompanhamento em tempo real das entradas e saídas deste mês."}
+            </p>
+          </div>
+        </div>
+
+        {/* Month Navigation Controls */}
+        <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+          <button
+            onClick={() => setMonthOffset(prev => prev - 1)}
+            className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
+            title="Navegar para Mês Anterior (Relatório Passado)"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Mês Anterior</span>
+          </button>
+
+          {monthOffset !== 0 && (
+            <button
+              onClick={() => setMonthOffset(0)}
+              className="p-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 rounded-xl text-amber-400 text-xs font-bold transition-all cursor-pointer"
+              title="Voltar para Mês Atual"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </button>
+          )}
+
+          <button
+            onClick={() => setMonthOffset(prev => prev + 1)}
+            className="px-3 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-semibold text-white transition-all flex items-center gap-1 cursor-pointer"
+            title="Navegar para Próximo Mês (Contas Programadas)"
+          >
+            <span>Próximo Mês</span>
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Top Cards Grid: Entradas, Saídas e O que Resta */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         
-        {/* Total Balance Card */}
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group">
+        {/* Total Balance Card (O Que Resta) */}
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-champagne-gold/20">
           <div className="absolute top-0 right-0 w-32 h-32 bg-champagne-gold/5 rounded-bl-full blur-2xl group-hover:bg-champagne-gold/10 transition-colors duration-500"></div>
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-mono text-xs uppercase tracking-wider text-white/40">
-              {currency === "USD" ? "Total Balance" : "Saldo Consolidado"}
+          <div className="flex justify-between items-center mb-3">
+            <span className="font-mono text-xs uppercase tracking-wider text-white/50 font-bold">
+              O Que Resta (Saldo Total)
             </span>
             <span className="material-symbols-outlined text-champagne-gold">account_balance</span>
           </div>
-          <div className="text-3xl font-bold font-sans tracking-tight text-champagne-gold mb-3 shimmer-gold bg-clip-text">
+          <div className="text-3xl font-bold font-sans tracking-tight text-champagne-gold mb-2 shimmer-gold bg-clip-text">
             {formatValue(totalBalance)}
           </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success-emerald/10 text-success-emerald text-xs font-semibold border border-success-emerald/20">
-              <TrendingUp className="w-3.5 h-3.5 mr-1" />
-              +2.4%
-            </span>
-            <span className="text-xs text-white/40 font-mono">
-              {currency === "USD" ? "vs last month" : "vs mês anterior"}
-            </span>
-          </div>
-          
-          {/* Sparkline Visualizer */}
-          <div className="mt-6 h-12 w-full flex items-end gap-1.5 opacity-60 group-hover:opacity-100 transition-opacity">
-            <div className="w-1/6 bg-champagne-gold/20 h-1/4 rounded-t-sm"></div>
-            <div className="w-1/6 bg-champagne-gold/30 h-2/4 rounded-t-sm"></div>
-            <div className="w-1/6 bg-champagne-gold/40 h-1/3 rounded-t-sm"></div>
-            <div className="w-1/6 bg-champagne-gold/60 h-3/4 rounded-t-sm"></div>
-            <div className="w-1/6 bg-champagne-gold/80 h-2/3 rounded-t-sm"></div>
-            <div className="w-1/6 bg-champagne-gold h-full rounded-t-sm"></div>
-          </div>
+          <p className="text-xs text-white/50 font-sans">
+            Balanço acumulado da sua conta
+          </p>
         </div>
 
-        {/* Monthly Income Card */}
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-mono text-xs uppercase tracking-wider text-white/40">
-              {currency === "USD" ? "Monthly Income" : "Entradas Mensais"}
-            </span>
-            <ArrowDown className="w-5 h-5 text-success-emerald" />
+        {/* Monthly Income Card (O Que Entra) */}
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-emerald-500/20 flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-mono text-xs uppercase tracking-wider text-emerald-400 font-bold flex items-center gap-1">
+                <ArrowDown className="w-4 h-4 text-emerald-400" />
+                O Que Entra (Receitas)
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-mono font-bold">
+                Entradas (+)
+              </span>
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-white mb-2">
+              {formatValue(monthlyIncome)}
+            </div>
+            <p className="text-xs text-white/50 font-sans mb-4">
+              Total recebido no período
+            </p>
           </div>
-          <div className="text-3xl font-bold tracking-tight text-white mb-3">
-            {formatValue(monthlyIncome)}
-          </div>
-          <div className="text-xs text-white/40 font-mono">
-            {currency === "USD" ? "Expected: $15,000" : "Esperado: R$ 75.000,00"}
-          </div>
-          <div className="mt-6 w-full h-1.5 bg-white/5 rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-success-emerald rounded-full transition-all duration-1000"
-              style={{ width: "95%" }}
-            ></div>
-          </div>
+          <button
+            onClick={() => onTriggerAdd("income")}
+            className="w-full py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-400 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          >
+            <PlusCircle className="w-4 h-4" />
+            + Inserir Receita / Dinheiro
+          </button>
         </div>
 
-        {/* Monthly Expenses Card */}
-        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group">
-          <div className="flex justify-between items-center mb-4">
-            <span className="font-mono text-xs uppercase tracking-wider text-white/40">
-              {currency === "USD" ? "Monthly Expenses" : "Saídas Mensais"}
-            </span>
-            <ArrowUp className="w-5 h-5 text-danger-crimson" />
+        {/* Monthly Expenses Card (O Que Sai) */}
+        <div className="glass-card rounded-2xl p-6 relative overflow-hidden group border border-amber-500/20 flex flex-col justify-between">
+          <div>
+            <div className="flex justify-between items-center mb-3">
+              <span className="font-mono text-xs uppercase tracking-wider text-amber-400 font-bold flex items-center gap-1">
+                <ArrowUp className="w-4 h-4 text-amber-400" />
+                O Que Sai (Despesas)
+              </span>
+              <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 text-[10px] font-mono font-bold">
+                Saídas (-)
+              </span>
+            </div>
+            <div className="text-3xl font-bold tracking-tight text-white mb-2">
+              {formatValue(monthlyExpenses)}
+            </div>
+            <p className="text-xs text-white/50 font-sans mb-4">
+              Total gasto no período
+            </p>
           </div>
-          <div className="text-3xl font-bold tracking-tight text-white mb-3">
-            {formatValue(monthlyExpenses)}
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-danger-crimson/10 text-danger-crimson text-xs font-semibold border border-danger-crimson/20">
-              <TrendingUp className="w-3.5 h-3.5 mr-1" />
-              +1.2%
-            </span>
-            <span className="text-xs text-white/40 font-mono">
-              {currency === "USD" ? "vs avg" : "vs média anterior"}
-            </span>
-          </div>
-
-          <div className="mt-6 w-full flex items-end gap-1.5 h-12 opacity-80">
-            <div className="flex-1 bg-white/5 h-[40%] rounded-t-sm relative hover:bg-white/10"><div className="absolute bottom-0 w-full h-full bg-danger-crimson/40 rounded-t-sm"></div></div>
-            <div className="flex-1 bg-white/5 h-[60%] rounded-t-sm relative hover:bg-white/10"><div className="absolute bottom-0 w-full h-full bg-danger-crimson/60 rounded-t-sm"></div></div>
-            <div className="flex-1 bg-white/5 h-[30%] rounded-t-sm relative hover:bg-white/10"><div className="absolute bottom-0 w-full h-full bg-danger-crimson/30 rounded-t-sm"></div></div>
-            <div className="flex-1 bg-white/5 h-[80%] rounded-t-sm relative hover:bg-white/10"><div className="absolute bottom-0 w-full h-full bg-danger-crimson/80 rounded-t-sm"></div></div>
-            <div className="flex-1 bg-white/5 h-[100%] rounded-t-sm relative hover:bg-white/10"><div className="absolute bottom-0 w-full h-full bg-danger-crimson rounded-t-sm"></div></div>
-          </div>
+          <button
+            onClick={() => onTriggerAdd("expense")}
+            className="w-full py-2.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-400 font-bold text-xs rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm"
+          >
+            <PlusCircle className="w-4 h-4" />
+            + Inserir Despesa / Gasto
+          </button>
         </div>
 
       </div>

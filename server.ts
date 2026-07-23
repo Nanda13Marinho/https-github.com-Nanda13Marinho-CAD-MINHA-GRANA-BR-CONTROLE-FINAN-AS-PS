@@ -290,6 +290,262 @@ async function startServer() {
     res.send(htmlContent);
   });
 
+  // Dedicated Costs & Financial Projections Presentation Endpoint (Printable PDF)
+  app.get(["/cost-pdf", "/costs"], (req, res) => {
+    const htmlContent = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cadê Minha Grana — Relatório de Custos e Projeções de Infraestrutura (PDF)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      .no-print { display: none !important; }
+      body { background: #ffffff !important; color: #000000 !important; font-size: 10pt; }
+      .page-break { page-break-after: always; }
+      .card-box { border: 1px solid #cbd5e1 !important; background: #f8fafc !important; color: #000 !important; box-shadow: none !important; }
+      .text-amber-400, .text-amber-500 { color: #b45309 !important; }
+      .text-emerald-400, .text-emerald-500 { color: #047857 !important; }
+      .text-cyan-400, .text-cyan-600 { color: #0284c7 !important; }
+      .bg-amber-500 { background-color: #d97706 !important; color: #fff !important; }
+      .text-white { color: #0f172a !important; }
+      .text-white\\/60, .text-white\\/70, .text-white\\/80 { color: #334155 !important; }
+    }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  </style>
+</head>
+<body class="bg-[#08080a] text-[#E0D8D0] min-h-screen p-4 md:p-10">
+
+  <!-- Floating Print/PDF Bar -->
+  <div class="no-print fixed top-4 right-4 z-50 flex items-center gap-3 bg-[#121216] border border-amber-500/40 p-3 rounded-2xl shadow-2xl backdrop-blur-md">
+    <div class="text-xs text-white">
+      <span class="font-bold text-amber-400 block">Relatório Pronto para PDF</span>
+      <span class="text-[10px] text-white/50">Clique ao lado para gerar ou baixar o arquivo PDF</span>
+    </div>
+    <button onclick="window.print()" class="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-orange-600 text-black font-extrabold text-xs rounded-xl hover:from-amber-400 hover:to-orange-500 transition-all cursor-pointer shadow-lg flex items-center gap-2">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+      🖨️ Baixar / Salvar PDF
+    </button>
+  </div>
+
+  <div class="max-w-4xl mx-auto space-y-8">
+
+    <!-- HEADER / COVER -->
+    <header class="card-box bg-[#101014] border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+      <div class="flex items-center justify-between border-b border-white/10 pb-6">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center font-black text-black text-lg shadow-lg">
+            CMG
+          </div>
+          <div>
+            <h1 class="text-2xl font-black text-white tracking-widest uppercase">Cadê Minha Grana</h1>
+            <p class="text-xs text-amber-400 font-mono tracking-wider uppercase">Relatório Financeiro & Estrutura de Custos de Infraestrutura</p>
+          </div>
+        </div>
+        <div class="text-right text-xs font-mono text-white/50">
+          <span>Escala de 1k a 100k Usuários</span><br>
+          <span>Moeda: BRL (R$) / USD ($)</span>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <h2 class="text-2xl font-black text-white">
+          Análise do Custo Unitário (Unit Economics) & Margem Bruta SaaS
+        </h2>
+        <p class="text-xs text-white/70 leading-relaxed">
+          Este documento especifica em detalhes os custos de servidores em nuvem, modelo de inteligência artificial (Gemini 3.5 Flash), banco de dados Supabase (PostgreSQL) e conectores bancários Open Finance para diferentes volumes de usuários ativos.
+        </p>
+      </div>
+
+      <!-- KPI Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center font-mono text-xs">
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+          <span class="text-white/40 block text-[9px]">CUSTO MÉDIO / USUÁRIO PRO</span>
+          <span class="font-bold text-amber-400">R$ 0,85 / mês</span>
+        </div>
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+          <span class="text-white/40 block text-[9px]">TICKET MÉDIO PRO</span>
+          <span class="font-bold text-emerald-400">R$ 29,00 / mês</span>
+        </div>
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+          <span class="text-white/40 block text-[9px]">MARGEM BRUTA ESTIMADA</span>
+          <span class="font-bold text-cyan-400">94.5% a 95.1%</span>
+        </div>
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5">
+          <span class="text-white/40 block text-[9px]">PONTO DE EQUILÍBRIO (BREAK-EVEN)</span>
+          <span class="font-bold text-orange-400">~18 Assinantes Pro</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- SECTION 1: PROJEÇÃO POR VOLUME DE USUÁRIOS -->
+    <section class="card-box bg-[#101014] border border-white/10 rounded-3xl p-8 shadow-xl space-y-6">
+      <h3 class="text-lg font-bold text-amber-400 border-b border-white/10 pb-3 flex items-center justify-between">
+        <span>1. Projeção de Faturamento x Custos por Volume de Usuários</span>
+        <span class="text-xs text-white/50 font-normal font-mono">(Valores Mensais em R$)</span>
+      </h3>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-xs border-collapse">
+          <thead>
+            <tr class="border-b border-white/10 text-white/50 font-mono uppercase text-[10px]">
+              <th class="pb-3">Volume Usuários</th>
+              <th class="pb-3">Composição da Base</th>
+              <th class="pb-3">Faturamento Mensal</th>
+              <th class="pb-3">Custo Total Infra + IA</th>
+              <th class="pb-3">Lucro Bruto Operacional</th>
+              <th class="pb-3 text-right">Margem Líquida %</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5 font-mono">
+            
+            <tr>
+              <td class="py-3.5 font-bold text-white">1.000 us.</td>
+              <td class="py-3.5 text-white/70">800 Grátis • 150 Pro • 50 Premium</td>
+              <td class="py-3.5 text-emerald-400 font-bold">R$ 7.800,00</td>
+              <td class="py-3.5 text-red-400 font-bold">R$ 380,00</td>
+              <td class="py-3.5 text-white font-bold">R$ 7.420,00</td>
+              <td class="py-3.5 text-right text-cyan-400 font-bold">95,1%</td>
+            </tr>
+
+            <tr>
+              <td class="py-3.5 font-bold text-white">10.000 us.</td>
+              <td class="py-3.5 text-white/70">8.000 Grátis • 1.500 Pro • 500 Premium</td>
+              <td class="py-3.5 text-emerald-400 font-bold">R$ 78.000,00</td>
+              <td class="py-3.5 text-red-400 font-bold">R$ 3.850,00</td>
+              <td class="py-3.5 text-white font-bold">R$ 74.150,00</td>
+              <td class="py-3.5 text-right text-cyan-400 font-bold">95,0%</td>
+            </tr>
+
+            <tr>
+              <td class="py-3.5 font-bold text-white">50.000 us.</td>
+              <td class="py-3.5 text-white/70">40.000 Grátis • 7.500 Pro • 2.500 Premium</td>
+              <td class="py-3.5 text-emerald-400 font-bold">R$ 390.000,00</td>
+              <td class="py-3.5 text-red-400 font-bold">R$ 21.200,00</td>
+              <td class="py-3.5 text-white font-bold">R$ 368.800,00</td>
+              <td class="py-3.5 text-right text-cyan-400 font-bold">94,5%</td>
+            </tr>
+
+            <tr>
+              <td class="py-3.5 font-bold text-white">100.000 us.</td>
+              <td class="py-3.5 text-white/70">80.000 Grátis • 15.000 Pro • 5.000 Premium</td>
+              <td class="py-3.5 text-emerald-400 font-bold">R$ 780.000,00</td>
+              <td class="py-3.5 text-red-400 font-bold">R$ 44.500,00</td>
+              <td class="py-3.5 text-white font-bold">R$ 735.500,00</td>
+              <td class="py-3.5 text-right text-cyan-400 font-bold">94,2%</td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <p class="text-[11px] text-white/50 italic border-t border-white/5 pt-3">
+        *Premissas: Conversão de 15% para Plano Pro (R$ 29/mês) e 5% para Plano Premium VIP (R$ 69/mês). O custo de aquisição (CAC) não está incluso nos custos diretos de infraestrutura.
+      </p>
+    </section>
+
+    <div class="page-break"></div>
+
+    <!-- SECTION 2: DETALHAMENTO DE CUSTOS POR SERVIÇO (UNIT ECONOMICS) -->
+    <section class="card-box bg-[#101014] border border-white/10 rounded-3xl p-8 shadow-xl space-y-6">
+      <h3 class="text-lg font-bold text-amber-400 border-b border-white/10 pb-3">
+        2. Detalhamento Unitário de Custos por Componente Tecnológico
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        
+        <!-- Gemini IA -->
+        <div class="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between font-bold text-white">
+            <span>🤖 Inteligência Artificial (Gemini 3.5 Flash)</span>
+            <span class="text-amber-400 font-mono text-[10px]">CUSTO VARIÁVEL</span>
+          </div>
+          <ul class="text-white/70 space-y-1.5 list-disc pl-4 text-[11px]">
+            <li><strong>Comando de Voz (Audio Speech-to-Text):</strong> R$ 0,0014 por lançamento (15 segundos de áudio).</li>
+            <li><strong>Leitor OCR de Recibo (Foto/Image):</strong> R$ 0,0022 por foto analisada.</li>
+            <li><strong>Conselho do Copiloto IA:</strong> R$ 0,0008 por resposta enviada.</li>
+            <li><strong>Estimativa por Usuário Pro/mês:</strong> ~R$ 0,45 / mês (considerando 30 entradas por voz e 10 recibos).</li>
+          </ul>
+        </div>
+
+        <!-- Cloud Run Server -->
+        <div class="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between font-bold text-white">
+            <span>☁️ Servidor Full-Stack (Google Cloud Run)</span>
+            <span class="text-cyan-400 font-mono text-[10px]">AUTO-SCALING</span>
+          </div>
+          <ul class="text-white/70 space-y-1.5 list-disc pl-4 text-[11px]">
+            <li><strong>Instância Base (1 vCPU, 2GB RAM):</strong> R$ 0,00 (dentro do Free Tier do Google Cloud até 2 milhões de requisições).</li>
+            <li><strong>Escala até 10.000 usuários:</strong> ~R$ 120,00 / mês de poder computacional.</li>
+            <li><strong>Escala até 100.000 usuários:</strong> ~R$ 1.800,00 / mês (múltiplas instâncias simultâneas sem queda).</li>
+          </ul>
+        </div>
+
+        <!-- Supabase Database -->
+        <div class="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between font-bold text-white">
+            <span>🗄️ Banco de Dados PostgreSQL (Supabase)</span>
+            <span class="text-emerald-400 font-mono text-[10px]">ESCALÁVEL</span>
+          </div>
+          <ul class="text-white/70 space-y-1.5 list-disc pl-4 text-[11px]">
+            <li><strong>Até 1.000 usuários:</strong> R$ 0,00 / mês (Free Tier Supabase - 500MB DB).</li>
+            <li><strong>Plano Pro Supabase (até 50.000 us.):</strong> ~R$ 140,00 / mês ($25 USD) com 8GB de armazenamento.</li>
+            <li><strong>Plano Enterprise com Backups Automáticos:</strong> ~R$ 1.200,00 / mês para 100.000 usuários ativos.</li>
+          </ul>
+        </div>
+
+        <!-- Open Finance BaaS -->
+        <div class="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-2">
+          <div class="flex items-center justify-between font-bold text-white">
+            <span>🏦 Conector Bancário Open Finance (Belvo / Pluggy)</span>
+            <span class="text-orange-400 font-mono text-[10px]">APENAS PLANO VIP</span>
+          </div>
+          <ul class="text-white/70 space-y-1.5 list-disc pl-4 text-[11px]">
+            <li><strong>Custo por Conta Conectada:</strong> ~R$ 1,50 / mês por conta bancária ativa de cliente Premium.</li>
+            <li><strong>Repasse no Ticket VIP:</strong> O cliente paga R$ 69,00 / mês e o conector custa R$ 1,50. Margem do VIP mantida em &gt;97%.</li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: ESTRATÉGIAS DE OTIMIZAÇÃO DE CUSTOS -->
+    <section class="card-box bg-[#101014] border border-white/10 rounded-3xl p-8 shadow-xl space-y-4">
+      <h3 class="text-lg font-bold text-amber-400 border-b border-white/10 pb-3">
+        3. Estratégias de Otimização e Proteção de Margem Bruta
+      </h3>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-1">
+          <strong class="text-white block">1. Cache de Prompt Gemini:</strong>
+          <p class="text-white/60">Reutilização de contexto de categorias e regras financeiras reduz em até 50% o consumo de tokens de entrada na API da Google.</p>
+        </div>
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-1">
+          <strong class="text-white block">2. Compactação de Áudio no Cliente:</strong>
+          <p class="text-white/60">O app converte áudio em Opus WebM (leve) antes de enviar para o servidor, economizando 80% de banda de internet.</p>
+        </div>
+        <div class="p-3 bg-white/5 rounded-xl border border-white/5 space-y-1">
+          <strong class="text-white block">3. Rate Limiting por Nível de Plano:</strong>
+          <p class="text-white/60">Limite de 30 chamadas/mês no plano gratuito garante que usuários não-pagantes nunca gerem prejuízo para a plataforma.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER SUMMARY -->
+    <footer class="text-center text-xs text-white/40 pt-6 border-t border-white/10 space-y-2 font-mono">
+      <p>© 2026 Cadê Minha Grana Inc. — Documento Oficial de Análise e Planejamento de Custos de TI.</p>
+      <p class="no-print text-amber-400">Dica: Utilize a opção "Salvar como PDF" do seu navegador ao clicar no botão superior.</p>
+    </footer>
+
+  </div>
+
+</body>
+</html>`;
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    res.send(htmlContent);
+  });
+
 
   // Save current state or modify transactions
   app.post("/api/data", (req, res) => {

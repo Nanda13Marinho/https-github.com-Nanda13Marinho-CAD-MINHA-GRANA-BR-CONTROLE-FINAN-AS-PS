@@ -5,13 +5,14 @@ import { Transaction } from "../types";
 interface AddTransactionModalProps {
   onClose: () => void;
   onSave: (t: Omit<Transaction, "id">) => void;
+  initialType?: "income" | "expense";
 }
 
-export default function AddTransactionModal({ onClose, onSave }: AddTransactionModalProps) {
+export default function AddTransactionModal({ onClose, onSave, initialType = "expense" }: AddTransactionModalProps) {
   const [entryMode, setEntryMode] = useState<"manual" | "voice" | "file">("manual");
-  const [type, setType] = useState<"income" | "expense">("expense");
+  const [type, setType] = useState<"income" | "expense">(initialType);
   const [merchant, setMerchant] = useState("");
-  const [category, setCategory] = useState("Restaurantes");
+  const [category, setCategory] = useState(initialType === "income" ? "Salário" : "Restaurantes");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState<"USD" | "BRL">("BRL");
   const [status, setStatus] = useState<"Cleared" | "Pending" | "Reviewed">("Cleared");
@@ -26,7 +27,7 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
   const [processingFile, setProcessingFile] = useState(false);
   const [fileError, setFileError] = useState<string | null>(null);
 
-  const categories = [
+  const expenseCategories = [
     "Restaurantes",
     "Eletrônicos",
     "Transporte",
@@ -35,9 +36,34 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
     "Compras",
     "Supermercado",
     "Contas / Serviços",
-    "Salário",
-    "Outros"
+    "Saúde",
+    "Outras Despesas"
   ];
+
+  const incomeCategories = [
+    "Salário",
+    "Freelance / Serviços",
+    "Investimentos / Rendimentos",
+    "Vendas",
+    "Restituição / Reembolso",
+    "Presente / Bônus",
+    "Outras Receitas"
+  ];
+
+  const currentCategories = type === "income" ? incomeCategories : expenseCategories;
+
+  const handleTypeChange = (newType: "income" | "expense") => {
+    setType(newType);
+    if (newType === "income") {
+      if (!incomeCategories.includes(category)) {
+        setCategory("Salário");
+      }
+    } else {
+      if (!expenseCategories.includes(category)) {
+        setCategory("Restaurantes");
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -187,8 +213,17 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
         {/* Header */}
         <div className="p-5 border-b border-white/5 flex justify-between items-center bg-[#2a2a2b]/30">
           <div className="flex items-center gap-2">
-            <Plus className="w-5 h-5 text-champagne-gold" />
-            <h3 className="text-lg font-bold text-white">Adicionar Lançamento</h3>
+            <Plus className={`w-5 h-5 ${type === "income" ? "text-success-emerald" : "text-amber-500"}`} />
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              {type === "income" ? "Adicionar Receita" : "Adicionar Despesa"}
+              <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded uppercase tracking-wider ${
+                type === "income" 
+                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" 
+                  : "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+              }`}>
+                {type === "income" ? "Entrada (+)" : "Saída (-)"}
+              </span>
+            </h3>
           </div>
           <button 
             onClick={onClose}
@@ -334,7 +369,7 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
             <div className="flex bg-[#131315] p-1 rounded-xl border border-white/5">
               <button 
                 type="button"
-                onClick={() => setType("expense")}
+                onClick={() => handleTypeChange("expense")}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   type === "expense" 
                     ? "bg-danger-crimson text-white shadow-md" 
@@ -345,25 +380,31 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
               </button>
               <button 
                 type="button"
-                onClick={() => setType("income")}
+                onClick={() => handleTypeChange("income")}
                 className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                   type === "income" 
                     ? "bg-success-emerald text-[#010814] shadow-md" 
                     : "text-white/40 hover:text-white"
                 }`}
               >
-                Receita
+                Receita (Recebimento)
               </button>
             </div>
 
-            {/* Estabelecimento */}
+            {/* Estabelecimento / Fonte */}
             <div className="space-y-1.5">
-              <label className="text-xs font-mono uppercase tracking-wider text-white/40">Estabelecimento / Fonte</label>
+              <label className="text-xs font-mono uppercase tracking-wider text-white/40">
+                {type === "income" ? "Fonte / Origem do Recebimento" : "Estabelecimento / Local"}
+              </label>
               <input 
                 type="text" 
                 value={merchant}
                 onChange={(e) => setMerchant(e.target.value)}
-                placeholder="Ex: Outback, Shell, Salário Tech Corp..." 
+                placeholder={
+                  type === "income" 
+                    ? "Ex: Salário Empresa, Cliente Freelance, Venda de item, Pix recebido..." 
+                    : "Ex: Outback, Posto Shell, Supermercado..."
+                } 
                 className="w-full bg-[#131315] border border-white/5 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-champagne-gold/40"
                 required
               />
@@ -372,7 +413,9 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
             {/* Amount & Currency Grid */}
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2 space-y-1.5">
-                <label className="text-xs font-mono uppercase tracking-wider text-white/40">Valor</label>
+                <label className="text-xs font-mono uppercase tracking-wider text-white/40">
+                  {type === "income" ? "Valor Recebido" : "Valor do Gasto"}
+                </label>
                 <input 
                   type="number" 
                   step="0.01"
@@ -405,7 +448,7 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
                   onChange={(e) => setCategory(e.target.value)}
                   className="w-full bg-[#131315] border border-white/5 rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-champagne-gold/40"
                 >
-                  {categories.map((cat) => (
+                  {currentCategories.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
                   ))}
                 </select>
@@ -427,10 +470,14 @@ export default function AddTransactionModal({ onClose, onSave }: AddTransactionM
             {/* Action Buttons */}
             <button 
               type="submit"
-              className="w-full mt-4 py-3 bg-champagne-gold text-deep-navy font-bold rounded-xl text-xs hover:bg-white hover:text-deep-navy transition-all flex items-center justify-center gap-1 cursor-pointer shadow-[0_0_15px_rgba(230,190,138,0.3)]"
+              className={`w-full mt-4 py-3 font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1 cursor-pointer shadow-lg ${
+                type === "income" 
+                  ? "bg-success-emerald text-[#010814] hover:bg-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
+                  : "bg-champagne-gold text-deep-navy hover:bg-white shadow-[0_0_15px_rgba(230,190,138,0.3)]"
+              }`}
             >
               <CheckCircle className="w-4 h-4" />
-              Salvar Lançamento
+              {type === "income" ? "Salvar Receita / Recebimento" : "Salvar Despesa"}
             </button>
 
           </form>

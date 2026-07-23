@@ -322,29 +322,6 @@ export default function PlansView({ currentPlan, onUpgrade, currency, userRole }
                 </p>
               </div>
             </div>
-
-            <div className="flex flex-col sm:flex-row gap-2 self-start md:self-center shrink-0">
-              <a 
-                href="/presentation"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2.5 rounded-xl bg-amber-500 text-[#010814] hover:bg-white transition-all font-bold text-xs flex items-center gap-2 shadow-[0_0_15px_rgba(245,158,11,0.25)] cursor-pointer"
-              >
-                <FileText className="w-4 h-4" />
-                Apresentação Executiva (PDF)
-              </a>
-
-              {userRole === "admin" && (
-                <a 
-                  href="/api/download-prd"
-                  download="PRD_CADE_MINHA_GRANA.md"
-                  className="px-4 py-2.5 rounded-xl bg-white/10 text-white hover:bg-white/20 transition-all font-bold text-xs flex items-center gap-2 cursor-pointer border border-white/10"
-                >
-                  <Download className="w-4 h-4" />
-                  Baixar PDR (.md)
-                </a>
-              )}
-            </div>
           </div>
 
           {/* Billing History List */}

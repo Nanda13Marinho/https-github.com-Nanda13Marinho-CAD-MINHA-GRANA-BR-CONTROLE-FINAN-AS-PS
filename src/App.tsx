@@ -33,6 +33,8 @@ import {
   Plus,
   ShieldCheck,
   CreditCard,
+  Sun,
+  Moon,
   Download,
   FileText
 } from "lucide-react";
@@ -47,11 +49,19 @@ interface UserSession {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<"dashboard" | "detailed" | "cashflow" | "radar" | "chat" | "plans" | "admin">("dashboard");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const isLight = theme === "light";
   const [currency, setCurrency] = useState<"USD" | "BRL">("BRL");
   const [showScanner, setShowScanner] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [addModalType, setAddModalType] = useState<"income" | "expense">("expense");
   const [chatLoading, setChatLoading] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleTriggerAdd = (type: "income" | "expense" = "expense") => {
+    setAddModalType(type);
+    setShowAdd(true);
+  };
   
   // App-wide session states
   const [splashCompleted, setSplashCompleted] = useState<boolean>(() => {
@@ -63,6 +73,7 @@ export default function App() {
   });
 
   // App-wide persistent database state
+  const [demoDb, setDemoDb] = useState<AppData | null>(null);
   const [data, setData] = useState<AppData>({
     transactions: [],
     goals: [],
@@ -162,14 +173,14 @@ export default function App() {
     triggerToast("Configuração inicial do patrimônio concluída!", "success");
   };
 
-  // Fetch data on load
+  // Fetch initial demo data from backend
   useEffect(() => {
     async function loadData() {
       try {
         const res = await fetch("/api/data");
         if (res.ok) {
           const db: AppData = await res.json();
-          setData(db);
+          setDemoDb(db);
         }
       } catch (e) {
         console.error("Error loading db.json", e);
@@ -178,15 +189,58 @@ export default function App() {
     loadData();
   }, []);
 
-  // Sync to database
+  // Isolate database per user session
+  useEffect(() => {
+    const isDemoUser = !user || user.email.toLowerCase() === "carlos@cademinhagrana.com" || user.email.toLowerCase() === "admin@cademinhagrana.com";
+
+    if (isDemoUser) {
+      if (demoDb) {
+        setData(demoDb);
+      }
+    } else if (user) {
+      // Real client account - load user's clean database from localStorage
+      const userKey = `cmg_user_db_${user.email.toLowerCase()}`;
+      const saved = localStorage.getItem(userKey);
+      if (saved) {
+        try {
+          setData(JSON.parse(saved));
+        } catch (e) {
+          console.error("Error parsing user db", e);
+        }
+      } else {
+        // Initialize brand clean dataset for newly registered real client
+        const cleanDb: AppData = {
+          transactions: [],
+          goals: [],
+          cards: [],
+          leaks: [],
+          recurring: [],
+          chatMessages: [],
+          budget: [],
+          ocrLogs: []
+        };
+        setData(cleanDb);
+        localStorage.setItem(userKey, JSON.stringify(cleanDb));
+      }
+    }
+  }, [user, demoDb]);
+
+  // Sync to appropriate storage (localStorage for real users, /api/data for demo mode)
   const syncDb = async (updatedData: AppData) => {
     try {
       setData(updatedData);
-      await fetch("/api/data", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedData)
-      });
+      const isDemoUser = !user || user.email.toLowerCase() === "carlos@cademinhagrana.com" || user.email.toLowerCase() === "admin@cademinhagrana.com";
+      
+      if (!isDemoUser && user) {
+        const userKey = `cmg_user_db_${user.email.toLowerCase()}`;
+        localStorage.setItem(userKey, JSON.stringify(updatedData));
+      } else {
+        await fetch("/api/data", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(updatedData)
+        });
+      }
     } catch (e) {
       console.error("Failed to sync database", e);
     }
@@ -346,7 +400,7 @@ export default function App() {
 
   // Step 4: Render Full SaaS Application
   return (
-    <div className="min-h-screen bg-[#050505] text-[#E0D8D0] flex font-sans">
+    <div className={`min-h-screen flex font-sans transition-colors duration-300 ${isLight ? "bg-slate-100 text-slate-900" : "bg-[#050505] text-[#E0D8D0]"}`}>
       
       {/* Dynamic Action Toasts */}
       {toast && (
@@ -462,31 +516,32 @@ export default function App() {
         </nav>
 
         {/* User profile footer info */}
-        <div className="p-4 border-t border-white/10 bg-white/[0.01] space-y-3">
+        <div className="p-4 border-t border-white/10 bg-white/[0.01]">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white font-bold text-xs uppercase">
+            <div className="w-9 h-9 rounded-full bg-amber-500/20 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xs uppercase shrink-0">
               {user.name.slice(0, 1)}
             </div>
             <div className="flex-grow min-w-0">
-              <p className="text-xs font-semibold text-white truncate">{user.name}</p>
-              <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
-                <span className="text-[10px] text-amber-500 font-mono font-bold uppercase tracking-wider truncate">{user.plan} Member</span>
-                {user.role === "admin" && (
-                  <button 
-                    onClick={() => setActiveTab("admin")}
-                    className="text-[9px] text-red-400 font-mono font-bold bg-red-500/10 px-1.5 py-0.5 rounded border border-red-500/20 hover:bg-red-500/20 transition-colors whitespace-nowrap cursor-pointer"
-                    title="Acessar Portal Administrativo Isolado"
-                  >
-                    Portal Admin
-                  </button>
-                )}
+              <div className="flex items-center gap-1.5 min-w-0">
+                {/* Online Green Dot placed in front of user name */}
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" title="Online"></span>
+                <p className="text-xs font-bold text-white truncate">{user.name}</p>
               </div>
+              {user.role === 'admin' ? (
+                <p className="text-[10px] text-red-400 font-mono font-bold uppercase tracking-wider mt-0.5">
+                  Admin
+                </p>
+              ) : (
+                <p className="text-[10px] text-amber-400/80 font-mono font-semibold uppercase tracking-wider mt-0.5">
+                  {user.plan || "Gratuito"}
+                </p>
+              )}
             </div>
             <button 
               onClick={handleLogout}
               title="Sair com segurança"
               aria-label="Sign out" 
-              className="text-white/40 hover:text-danger-crimson transition-colors cursor-pointer"
+              className="text-white/40 hover:text-danger-crimson transition-colors cursor-pointer p-1"
             >
               <LogOut className="w-4 h-4" />
             </button>
@@ -511,58 +566,60 @@ export default function App() {
             <span className="text-xs font-mono text-white/40 hidden md:inline">
               MÓDULO DE GESTÃO PATRIMONIAL CONECTADO • V1.0 • SEGURO
             </span>
+
+            {user.email.toLowerCase() === "carlos@cademinhagrana.com" || user.email.toLowerCase() === "admin@cademinhagrana.com" ? (
+              <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-[10px] font-mono font-semibold">
+                ⚡ Modo Demo
+              </span>
+            ) : null}
           </div>
 
           <div className="flex items-center gap-3">
             
-            {/* Presentation PDF & Download PRD button */}
-            <a 
-              href="/presentation"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black transition-all font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
-              title="Abrir Apresentação do Modelo de Negócio em formato executivo para salvar em PDF"
+            {/* Mode / Theme Selector Toggle Next to Currency */}
+            <button
+              onClick={() => {
+                const nextTheme = theme === "dark" ? "light" : "dark";
+                setTheme(nextTheme);
+                triggerToast(nextTheme === "light" ? "Modo Claro ativado" : "Modo Escuro ativado", "info");
+              }}
+              className={`px-2.5 py-1 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm ${
+                isLight 
+                  ? "bg-amber-500/10 hover:bg-amber-500/20 border-amber-500/30 text-amber-700" 
+                  : "bg-white/5 hover:bg-white/10 border-white/10 text-amber-400"
+              }`}
+              title={isLight ? "Alternar para Modo Escuro" : "Alternar para Modo Claro"}
             >
-              <FileText className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Apresentação (PDF)</span>
-            </a>
+              {isLight ? (
+                <>
+                  <Moon className="w-3.5 h-3.5 text-amber-600" />
+                  <span className="hidden sm:inline text-[11px]">Modo Escuro</span>
+                </>
+              ) : (
+                <>
+                  <Sun className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="hidden sm:inline text-[11px]">Modo Claro</span>
+                </>
+              )}
+            </button>
 
-            {user?.role === "admin" && (
-              <a 
-                href="/api/download-prd"
-                download="PRD_CADE_MINHA_GRANA.md"
-                className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:bg-white/10 hover:text-white transition-all font-mono font-bold text-xs flex items-center gap-1.5 shadow-sm cursor-pointer"
-                title="Baixar Documento de Requisitos do Produto (PDR) em Markdown"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Baixar PDR (.md)</span>
-              </a>
-            )}
-
-            {/* Real-time BRL / USD Conversion Toggle */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-1 flex items-center shadow-inner">
+            {/* Discreet Currency Conversion Toggle (Without country initials) */}
+            <div className="bg-white/5 border border-white/10 rounded-md p-0.5 flex items-center shadow-inner">
               <button 
                 onClick={() => setCurrency("BRL")}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${currency === "BRL" ? "bg-champagne-gold text-black shadow-sm" : "text-white/40 hover:text-[#E0D8D0]"}`}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all cursor-pointer ${currency === "BRL" ? "bg-amber-500 text-black shadow-sm" : "text-white/40 hover:text-[#E0D8D0]"}`}
+                title="Real (R$)"
               >
-                BRL (R$)
+                R$
               </button>
               <button 
                 onClick={() => setCurrency("USD")}
-                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all cursor-pointer ${currency === "USD" ? "bg-champagne-gold text-black shadow-sm" : "text-white/40 hover:text-[#E0D8D0]"}`}
+                className={`px-2 py-0.5 text-[10px] font-bold rounded transition-all cursor-pointer ${currency === "USD" ? "bg-amber-500 text-black shadow-sm" : "text-white/40 hover:text-[#E0D8D0]"}`}
+                title="Dólar ($)"
               >
-                USD ($)
+                $
               </button>
             </div>
-
-            {/* Quick manual adding trigger */}
-            <button 
-              onClick={() => setShowAdd(true)}
-              title="Adicionar lançamento manual"
-              className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-on-surface-variant hover:text-white hover:border-white/15 hover:bg-white/10 transition-all cursor-pointer shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-            </button>
 
             {/* Simulated Notification bell */}
             <button aria-label="Notifications" className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-on-surface-variant hover:text-white hover:bg-white/10 transition-all shrink-0">
@@ -578,8 +635,9 @@ export default function App() {
             <HomeDashboard 
               data={data}
               currency={currency}
+              userEmail={user.email}
               onTriggerScanner={() => setShowScanner(true)}
-              onTriggerAdd={() => setShowAdd(true)}
+              onTriggerAdd={handleTriggerAdd}
               onReviewTransaction={handleReviewTransaction}
             />
           )}
@@ -595,7 +653,7 @@ export default function App() {
             <CashFlowView 
               data={data}
               currency={currency}
-              onTriggerAdd={() => setShowAdd(true)}
+              onTriggerAdd={handleTriggerAdd}
               onExecuteTransfer={handleExecuteTransfer}
             />
           )}
@@ -631,7 +689,7 @@ export default function App() {
             />
           )}
 
-          {activeTab === "admin" && user.role === "admin" && (
+          {activeTab === "admin" && (
             <AdminDashboard 
               data={data}
               currency={currency}
@@ -661,6 +719,7 @@ export default function App() {
         <AddTransactionModal 
           onClose={() => setShowAdd(false)}
           onSave={handleSaveTransaction}
+          initialType={addModalType}
         />
       )}
 

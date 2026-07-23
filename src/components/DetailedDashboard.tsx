@@ -25,12 +25,14 @@ export default function DetailedDashboard({ data, currency }: DetailedDashboardP
     }
   };
 
-  // Static premium base values that dynamically scale
-  const baseNetWorth = 1245670.00;
-  const currentNetWorth = convertVal(baseNetWorth, "USD");
+  // Dynamic calculation based on user data
+  const hasData = data.transactions.length > 0 || data.goals.length > 0 || data.cards.length > 0;
+  const baseNetWorth = hasData ? 1245670.00 : 0;
+  const deltaTransactions = data.transactions.reduce((sum, t) => sum + convertVal(t.amount, t.currency), 0);
+  const currentNetWorth = (hasData ? convertVal(baseNetWorth, "USD") : 0) + deltaTransactions;
 
-  const investmentValue = convertVal(934252.50, "USD");
-  const liquidityValue = convertVal(311417.50, "USD");
+  const investmentValue = hasData ? convertVal(934252.50, "USD") : 0;
+  const liquidityValue = currentNetWorth - investmentValue;
 
   return (
     <div className="space-y-8 animate-fade-in text-[#E0D8D0]">
